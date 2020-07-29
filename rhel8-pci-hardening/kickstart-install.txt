@@ -1,0 +1,10 @@
+1. DHCP install
+
+linux ks=http://{{Your IP HERE}}/rhel8
+
+2. Static IP install
+
+linux ks=http://{KICKSTART IP}}/rhel8 nameserver={{DNS Server IP}} ip={{RHEL8 IP}}::{{GATEWAY}}:{{NETMASK}}:rhel8:eth0:none
+
+    The `ip=` syntax is `ip=ip::gateway:netmask:hostname:interface:none`
+

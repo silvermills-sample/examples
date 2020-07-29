@@ -1,0 +1,13 @@
+1. Install HTTPD
+
+dnf install httpd httpd-devel httpd-tools -y
+
+2. Start HTTPD.
+
+systemctl start httpd.service
+
+3. Open the firewall for 80
+
+firewall-cmd --zone=public --permanent --add-service=http
+firewall-cmd --reload
+

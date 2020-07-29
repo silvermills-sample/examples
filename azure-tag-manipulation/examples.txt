@@ -1,0 +1,48 @@
+Example:
+ PS> Connect-AzAccount
+
+Example:
+ PS>  Get-AzSubscription
+
+ Name     Id                                   TenantId                             ..
+ ----     --                                   --------                             --
+ Apples   aaaaaaaa-1234-1234-1234-bbbbbbbbbbbb cccccccc-1234-1234-1234-dddddddddddd E.
+ Oranges  eeeeeeee-1234-1234-1234-ffffffffffff cccccccc-1234-1234-1234-dddddddddddd E.
+
+ PS> Get-AzSubscription -SubscriptionName "Oranges" | Set-AzContext -Name "Oranges"
+
+ Overwrite existing context 'Apples'
+ Are you sure you want to replace existing context 'Apples'?
+ [Y] Yes  [N] No  [S] Suspend  [?] Help (default is "Y"): Y
+
+
+ PS> Get-AzSubscription -SubscriptionName "Oranges" | Set-AzContext -Name "Oranges"
+
+ Overwrite existing context 'Apples'
+ Are you sure you want to replace existing context 'Apples'?
+ [Y] Yes  [N] No  [S] Suspend  [?] Help (default is "Y"): Y
+
+Example:
+ PS> Get-AzTag
+
+ Name            Count
+ ----            -----
+ grocery         4    
+ orchard         1    
+ pharmacy        1    
+
+Example: 
+ PS> Get-AzResource -TagName "pharmacy"                                                    
+
+ Name              : pharmacydesktop/LinuxDiagnostic
+ ResourceGroupName : Pharmacy                       
+ ResourceType      : Microsoft.Compute/virtualMachines/extensions
+ Location          : westus
+ ResourceId        : /subscriptions/eeeeeeee-1234-1234-1234-ffffffffffff/re
+ Tags              :
+                     Name             Value   
+                     ===============  =================
+                     pharmacy         Springfield
+
+Example:
+ PS>  Set-AzResource -Name "pharmacydesktop/LinuxDiagnostic" -ResourceGroupName Pharmacy -Tag @{} -ResourceType "Microsoft.Compute/virtualMachines/extensions"

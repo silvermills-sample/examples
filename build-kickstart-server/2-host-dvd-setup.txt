@@ -1,0 +1,27 @@
+1. Host the ISO/DVD.
+
+mount /dev/sr0 /mnt
+mkdir -p /var/www/html/x86_64/8/2
+cp -pr /mnt/AppStream /var/www/html/x86_64/8/2/
+cp -pr /mnt/BaseOS /var/www/html/x86_64/8/2/
+cp -p /mnt/RPM-GPG-KEY-redhat-release /var/www/html/x86_64/8/2/
+cp -p /mnt/RPM-GPG-KEY-redhat-beta /var/www/html/x86_64/8/2/
+
+2. Import the Red Hat GPG key.
+
+rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+
+3. Make a local dnf repository configuration.
+
+echo "[BaseOS]" > /etc/yum.repos.d/local.repo
+echo "name=baseos" >> /etc/yum.repos.d/local.repo
+echo "baseurl=file:///var/www/html/x86_64/8/2/BaseOS" >> /etc/yum.repos.d/local.repo
+echo "enabled=1" >> /etc/yum.repos.d/local.repo
+echo "gpgcheck=1" >> /etc/yum.repos.d/local.repo
+echo "gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release" >> /etc/yum.repos.d/local.repo
+echo "[AppStream]" >> /etc/yum.repos.d/local.repo
+echo "name=appstream" >> /etc/yum.repos.d/local.repo
+echo "baseurl=file:///var/www/html/x86_64/8/2/AppStream" >> /etc/yum.repos.d/local.repo
+echo "enabled=1" >> /etc/yum.repos.d/local.repo
+echo "gpgcheck=1" >> /etc/yum.repos.d/local.repo
+echo "gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release" >> /etc/yum.repos.d/local.repo
