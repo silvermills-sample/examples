@@ -51,16 +51,17 @@
     "image_requests":
         [
             {
-            "image_type":"azure",
+            "image_type":"aws",
             "architecture":"x86_64",
             "upload_request":
                 {
-                "type":"azure",
+                "type":"aws",
                 "options":
                     {
-                    "tenant_id":"MY-AZURE-TENANT-ID-STRING",
-                    "resource_group":"MyResourceGroupName-with-ImageBuilder-Contributor-Access",
-                    "subscription_id":"MY-AZURE-SUBSCRIPTION-ID-STRING"
+                    "share_with_accounts": 
+                        [ 
+                        "123456789012"
+                    ]
                 }
             }
         }
