@@ -1,65 +1,59 @@
 {
     "image_name":"MYNEWIMAGENAME",
     "distribution":"rhel-90",
-    "customizations":
-        {
-        "subscription":
-            {
+    "customizations": {
+        "subscription": {
             "base-url":"https://cdn.redhat.com/",
             "insights":false,
             "server-url":"subscription.rhsm.redhat.com",
             "organization":12345678,
             "activation-key":"MYNEWACTIVATIONKEY"
         },
-          "filesystem": [
+        "filesystem": [
             {
-              "min_size": 21474836480, 
-              "mountpoint": "/"
+                "min_size": 21474836480, 
+                "mountpoint": "/"
             },
             {
-              "min_size": 10737418240,
-              "mountpoint": "/tmp"
+                "min_size": 10737418240,
+                "mountpoint": "/tmp"
             },
             {
-              "min_size": 2147483648,
-              "mountpoint": "/home"
+                "min_size": 2147483648,
+                "mountpoint": "/home"
             },
             {
-              "min_size": 8589934592,
-              "mountpoint": "/var"
+                "min_size": 8589934592,
+                "mountpoint": "/var"
             },
             {
-              "min_size": 8589934592,
-              "mountpoint": "/var/tmp"
+                "min_size": 8589934592,
+                "mountpoint": "/var/tmp"
             },
             {
-              "min_size": 8589934592,
-              "mountpoint": "/var/log"
+                "min_size": 8589934592,
+                "mountpoint": "/var/log"
             },
             {
-              "min_size": 4294967296,
-              "mountpoint": "/var/log/audit"
+                "min_size": 4294967296,
+                "mountpoint": "/var/log/audit"
             }
-          ],
-          "packages": [
+        ],
+        "packages": [
             "openscap",
             "aide",
             "lsof",
             "pcp"
-          ]
+        ]
     },
-    "image_requests":
-        [
-            {
-            "image_type":"aws",
+    "image_requests": [
+        {
+            "image_type":"ami",
             "architecture":"x86_64",
-            "upload_request":
-                {
+            "upload_request": {
                 "type":"aws",
-                "options":
-                    {
-                    "share_with_accounts": 
-                        [ 
+                "options": {
+                    "share_with_accounts": [ 
                         "123456789012"
                     ]
                 }

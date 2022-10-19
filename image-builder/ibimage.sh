@@ -7,6 +7,7 @@ usage()
    {
    echo -e "\n   ibimage -d {image} # List full details of an image"
    echo -e "\n   ibimage -l         # List images\n"
+   echo -e "\n   ibimage -a         # List all images in full detail\n"
    exit 1
 } # end usage
 missingsession()
@@ -28,13 +29,12 @@ imagelist()
    cat ${CACHE}out | sed 's[","[@[g' | sed 's["[[g' | column -t -s@
    echo ""
    rm -f $CACHE ${CACHE}out
-   exit 0
 } # end imagelist
 findimage()
    {
    mysession=$(curl --silent --request POST --data grant_type=refresh_token --data client_id=rhsm-api --data refresh_token=$IB_REFRESH_TOKEN https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token | jq -r .access_token)
    echo ""
-   CHECK=`echo "d272f296-cbe5-4e27-8a46-08428b39bafa" | wc -c | awk {'print $1'}`
+   CHECK=`echo "$IMAGE" | wc -c | awk {'print $1'}`
    case $CHECK in
       37) curl --silent --header "Authorization: Bearer $mysession" --header "Content-Type: application/json" "https://console.redhat.com/api/image-builder/v1/composes/${IMAGE}" > $CACHE
           if grep "502 Bad Gateway" $CACHE 1>/dev/null 2>/dev/null
@@ -57,6 +57,17 @@ findimage()
                    ;;
             azure) echo -e "Azure Image@\c" >> ${CACHE}out
                    jq  -r '[.image_status.upload_status.options.image_name] | @tsv' $CACHE >> ${CACHE}out
+                   echo -e "URL@\c" >> ${CACHE}out
+                   echo "https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.Compute%2Fimages" >> ${CACHE}out
+                   ;;
+              aws) AMI=`jq  -r '[.image_status.upload_status.options.ami] | @tsv' $CACHE`
+                   REGION=`jq  -r '[.image_status.upload_status.options.region] | @tsv' $CACHE`
+                   echo -e "AWS Image@\c" >> ${CACHE}out
+                   echo "$AMI" >> ${CACHE}out
+                   echo -e "Region@\c" >> ${CACHE}out
+                   echo "$REGION" >> ${CACHE}out
+                   echo -e "URL@\c" >> ${CACHE}out
+                   echo "https://${REGION}.console.aws.amazon.com/ec2/v2/home?region=${REGION}#LaunchInstances:ami=${AMI}" >> ${CACHE}out
                    ;;
           esac
           cat ${CACHE}out | sed 's[","[@[' | sed 's["[[g' | column -t -s@
@@ -67,28 +78,43 @@ findimage()
           ;;
    esac
    rm -f ${CACHE}out
-   exit 0
 } # end findimage
+findallimage()
+   {
+   imagelist
+   while read IMAGE
+      do
+      findimage "$IMAGE"
+   done < <(imagelist | grep -v Distribution | grep . | awk {'print $1'})
+   exit 0
+} # end findallimage
 if [ -z "$IB_REFRESH_TOKEN" ]
    then
    missingsession
    usage
 fi
 token="$IB_REFRESH_TOKEN"
-while getopts ld: OPTION
+unset IMAGE DISCO ALL
+while getopts ld:a OPTION
    do
    case "$OPTION" in
       d) IMAGE=$OPTARG ;;
-      l) DISCO=TIME     ;;
-      h) usage          ;;
-      ?) usage          ;;
+      l) DISCO=TIME    ;;
+      a) ALL=LIST      ;;
+      h) usage         ;;
+      ?) usage         ;;
    esac
 done
 if [ -n "$DISCO" ]
    then
    imagelist
+   exit 0
+elif [ -n "$ALL" ]
+   then
+   findallimage
 elif [ -n "$IMAGE" ]
    then
    findimage "$IMAGE"
+   exit 0
 fi
 usage
