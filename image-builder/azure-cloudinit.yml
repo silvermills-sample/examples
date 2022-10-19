@@ -1,0 +1,70 @@
+#cloud-config
+write_files:
+  - owner: root:root
+    path: /etc/rc.d/rc.local
+    content: |
+      #!/bin/bash
+      # THIS FILE IS ADDED FOR COMPATIBILITY PURPOSES
+      #
+      # It is highly advisable to create own systemd services or udev rules
+      # to run scripts during boot instead of using this file.
+      #
+      # In contrast to previous versions due to parallel execution during boot
+      # this script will NOT be run after all other services.
+      #
+      # Please note that you must run 'chmod +x /etc/rc.d/rc.local' to ensure
+      # that this script will be executed during boot.
+      touch /var/lock/subsys/local
+      # Aide
+      while read directory
+         do
+         if grep "^.${directory}/" /etc/aide.conf 1>/dev/null 2>/dev/null
+            then
+            skip=it
+         else
+            echo -e "\!${directory}/" | sed "s,^\\\,," >> /etc/aide.conf
+         fi
+      done < <(cat /etc/fstab | egrep 'cifs|nfs' | awk {'print $2'})
+      /root/firstboot.sh
+  - owner: root:root
+    path: /root/firstboot.sh
+    content: |
+      sed -i 's,^/root/firstboot.sh,#/root/firstboot.sh,' /etc/rc.d/rc.local
+      if ! grep "foreman-proxy@satelite6" /root/.ssh/authorized_keys 1>/dev/null 2>/dev/null
+         then
+         echo "ssh-rsa myrsakey foreman-proxy@satelite6" >> /root/.ssh/authorized_keys
+      fi
+      dnf -y install `cat /root/rhel.dnf`
+      oscap xccdf eval --results cis.xml --profile cis /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
+      oscap xccdf generate fix --profile cis --fix-type bash --output /root/applycis.sh cis.xml
+      bash /root/applycis.sh
+      cat /etc/sudoers.d/90-cloud-init-users | tail -1 | sed 's,^# ,,' >> /etc/sudoers.d/90-cloud-init-users
+      sed -i 's,^install,\# install,g' /etc/modprobe.d/udf.conf
+      touch /.autorelabel
+  - owner: root:root
+    path: /root/rhel.dnf
+    content: |
+      realmd
+      pcp
+      bc
+  runcmd:
+  - chmod +x /etc/rc.d/rc.local
+  - echo -e "umask 022\nset -o vi" >> /root/.bash_profile
+  - sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
+  - nmcli con mod "System eth0" ipv6.method disabled
+  - sysctl -w net.ipv6.conf.all.disable_ipv6=1
+  - growpart /dev/sda 3
+  - pvresize /dev/sda3
+  - pvscan
+  - lvresize -r -L 20480M /dev/mapper/rootvg-rootlv
+  - lvresize -r -L 10240M /dev/mapper/rootvg-tmplv
+  - lvresize -r -L 2048M  /dev/mapper/rootvg-homelv
+  - lvresize -r -L 8192M  /dev/mapper/rootvg-varlv
+  - lvresize -r -L 8192M  /dev/mapper/rootvg-var_tmplv
+  - lvresize -r -L 8192M /dev/mapper/rootvg-var_loglv
+  - lvresize -r -L 4096M  /dev/mapper/rootvg-var_log_auditlv
+power_state:
+  delay: 3
+  mode: reboot
+  message: Rebooting machine
+  condition: true
