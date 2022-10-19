@@ -6,7 +6,7 @@ CACHE=./ibimage.cache
 usage()
    {
    echo -e "\n   ibimage -d {image} # List full details of an image"
-   echo -e "\n   ibimage -l         # List images\n"
+   echo -e "\n   ibimage -l         # List images"
    echo -e "\n   ibimage -a         # List all images in full detail\n"
    exit 1
 } # end usage
