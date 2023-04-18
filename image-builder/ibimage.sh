@@ -22,6 +22,10 @@ imagelist()
       then
       echo -e "\nNo images found.\n"
       exit 0
+   elif grep "500 Internal Server Error" $CACHE 1>/dev/null 2>/dev/null
+      then
+      echo -e "\nIB_REFRESH_TOKEN is expired.  Get a new one https://access.redhat.com/management/api\n"
+      exit 0
    fi
    echo ""
    echo -e "Image ID@Distribution@Image Name@Created" >> ${CACHE}out
@@ -117,4 +121,4 @@ elif [ -n "$IMAGE" ]
    findimage "$IMAGE"
    exit 0
 fi
-usage
+usage            

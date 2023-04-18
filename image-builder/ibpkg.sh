@@ -21,6 +21,10 @@ findpkg()
       then
       echo -e "\nFound 0 packages.\n"
       exit 0
+   elif grep "500 Internal Server Error" $CACHE 1>/dev/null 2>/dev/null
+      then
+      echo -e "\nIB_REFRESH_TOKEN is expired.  Get a new one https://access.redhat.com/management/api\n"
+      exit 0
    fi
    COUNT=`jq -r '.meta.count' $CACHE | awk {'print $1'}`
    echo -e "\nFound $COUNT packages.\n"
@@ -35,8 +39,21 @@ distrolist()
    {
    mysession=$(curl --silent --request POST --data grant_type=refresh_token --data client_id=rhsm-api --data refresh_token=$IB_REFRESH_TOKEN https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token | jq -r .access_token)
    echo ""
-   echo -e "Distribution@Description" >> ${CACHE}out
-   curl --silent --header "Authorization: Bearer $mysession" https://console.redhat.com/api/image-builder/v1/distributions | jq -r '.[] | [.name, .description] | @csv' | sort -ur >> ${CACHE}out
+   if ! grep Distribution ${CACHE}out 1>/dev/null 2>/dev/null
+      then
+      echo -e "Distribution@Description" >> ${CACHE}out
+   fi
+   curl --silent --header "Authorization: Bearer $mysession" https://console.redhat.com/api/image-builder/v1/distributions > $CACHE
+   if grep "502 Bad Gateway" $CACHE 1>/dev/null 2>/dev/null
+      then
+      echo -e "\nFound 0 distributions.\n"
+      exit 0
+   elif grep "500 Internal Server Error" $CACHE 1>/dev/null 2>/dev/null
+      then
+      echo -e "IB_REFRESH_TOKEN is expired.  Get a new one https://access.redhat.com/management/api\n"
+      exit 0
+   fi
+   cat $CACHE | jq -r '.[] | [.name, .description] | @csv' | sort -ur >> ${CACHE}out
    cat ${CACHE}out | sed 's[","[@[' | sed 's["[[g' | column -t -s@
    echo ""
    rm -f ${CACHE}out
