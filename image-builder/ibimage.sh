@@ -28,11 +28,20 @@ imagelist()
       exit 0
    fi
    echo ""
-   echo -e "Image ID@Distribution@Image Name@Created" >> ${CACHE}out
-   jq -r '.data[] | [.id,.request.distribution,.image_name,.created_at] | @csv' $CACHE >> ${CACHE}out
+   echo -e "Image ID@Distribution@Image Name@Created@Status" >> ${CACHE}out
+   if [ -s $CACHE ]
+      then
+      while read imgline
+      do
+         imgid=`echo $imgline | awk -F, {'print $1'}`
+         imgstatus=`curl --silent --header "Authorization: Bearer $mysession" --header "Content-Type: application/json" "https://console.redhat.com/api/image-builder/v1/composes/${imgid}" |jq -r '.image_status.status'`
+         echo "${imgline},\"${imgstatus}\"" >> ${CACHE}out
+      done < <(jq -r '.data[] | [.id,.request.distribution,.image_name,.created_at] | @csv' $CACHE)
+   #jq -r '.data[] | [.id,.request.distribution,.image_name,.created_at] | @csv' $CACHE >> ${CACHE}out
    cat ${CACHE}out | sed 's[","[@[g' | sed 's["[[g' | column -t -s@
    echo ""
    rm -f $CACHE ${CACHE}out
+   fi
 } # end imagelist
 findimage()
    {
