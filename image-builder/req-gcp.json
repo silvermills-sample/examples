@@ -11,6 +11,10 @@
         },
         "filesystem": [
             {
+                "min_size": 1073741824, 
+                "mountpoint": "/boot"
+            },
+            {
                 "min_size": 21474836480, 
                 "mountpoint": "/"
             },
